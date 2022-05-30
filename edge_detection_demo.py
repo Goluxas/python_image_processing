@@ -1,5 +1,7 @@
 import tkinter
 from tkinter import ttk
+import cv2
+from PIL import Image, ImageTk
 
 
 def main(input_image):
@@ -11,15 +13,31 @@ def main(input_image):
     root.columnconfigure(0, weight=1)
     root.columnconfigure(1, weight=3)
 
-    current_value = tkinter.DoubleVar()
+    slider_value = tkinter.DoubleVar()
+
+    # photo_image = tkinter.PhotoImage(file=input_image)
+    image = cv2.imread(input_image)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    edged = cv2.Canny(gray, 50, 100)
+
+    # convert to RGB for pillow
+    image = cv2.cvtColor(edged, cv2.COLOR_BGR2RGB)
+
+    # convert to PIL
+    image = Image.fromarray(image)
+
+    # convert to TK
+    photo_image = ImageTk.PhotoImage(image)
 
     # image dislay label
-    photo_image = tkinter.PhotoImage(file=input_image)
-    image_label = ttk.Label(root, image=photo_image)
+    def get_current_image():
+        return photo_image
+
+    image_label = ttk.Label(root, image=get_current_image())
     image_label.grid(row=0, columnspan=2, sticky="n")
 
     def get_current_value():
-        return f"{current_value.get():.2f}"
+        return f"{slider_value.get():.2f}"
 
     def slider_changed(event):
         value_label.configure(text=get_current_value())
@@ -35,7 +53,7 @@ def main(input_image):
         from_=0,
         to=100,
         orient="horizontal",
-        variable=current_value,
+        variable=slider_value,
         command=slider_changed,
     )
     slider.grid(column=1, row=1, sticky="we")
